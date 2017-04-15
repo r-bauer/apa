@@ -32,7 +32,7 @@ struct TermData
 int AsciiToTerm ( char *, struct TermData * );
 int AsciiToScientific ( char * ); 
 int ComputeResult ( struct TermData *, int, struct TermData *, struct TermData * ); 
-int DivAtoin (char *, int );
+int DivAtoin (const char *, int );
 int DivCheckZeroOnly (const char *);
 void DivQuickMult ( const char *, int, char *);
 void DivQuickSub ( char *, char *, char *);

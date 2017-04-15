@@ -747,50 +747,457 @@ int NormalDivide ( struct TermData * dvend_arg, struct TermData * dvsor_arg, str
     int i, j;
 
 
-    dividend 
-    divisor 
-    interim 
-    new_interim 
-    product 
-    answer 
-    calloc 
-    calloc 
-    calloc 
-    calloc 
-    calloc 
-    calloc 
-    1, 2*MAX_SIZE + 1 ); 
-    1, MAX__SIZE + 1 ); 
-    1, 2*MAX_SIZE + 1 ); 
-    1, 2*MAX_SIZE + 1 ) ; 
-    2, 2*MAX__SIZE + 1 ); 
-    2, MAX SIZE + 1 ); 
+    dividend    = calloc ( 1, 2*MAX_SIZE + 1 ); 
+    divisor     = calloc ( 1,   MAX_SIZE + 1 ); 
+    interim     = calloc ( 1, 2*MAX_SIZE + 1 ); 
+    new_interim = calloc ( 1, 2*MAX_SIZE + 1 ); 
+    product     = calloc ( 2, 2*MAX_SIZE + 1 ); 
+    answer      = calloc ( 2,   MAX_SIZE + 1 ); 
+
     if ( dividend == NULL || divisor == NULL || 
-    interim == NULL || new_interim == NULL || 
-    product == NULL j | answer == NULL ) 
+        interim == NULL || new_interim == NULL || 
+        product == NULL || answer == NULL ) 
     { 
-    printf ( "Error allocating memory in division\n" ); 
-    return ( 0 ); 
+        printf ( "Error allocating memory in division\n" ); 
+        return ( 0 ); 
     } 
-    /* load dividend with the digits as character values */ 
+
+    // load dividend with the digits as character values 
+
     i = 0; 
-    for ( pc = dvend__arg->term + 
-    DEC_LOC - dvend_arg->places_before; 
-    pc <= dvend__arg->term + 
-    DEC__LOC + dvend_arg->places__after - 1; 
-    pc++, i++ ) 
-    dividend[i] = *pc + ASCII__VAL; 
-    /* remove leading zeros */ 
-    while ( ^dividend == '0' ) 
-    DivShiftArrayLeft ( dividend ); 
-    /* likewise, for the divisor */ 
+    for ( pc = dvend_arg->term + DEC_LOC - dvend_arg->places_before; 
+            pc <= dvend_arg->term + DEC_LOC + dvend_arg->places_after - 1; 
+            pc++, i++ ) 
+        dividend[i] = *pc + ASCII_VAL; 
+
+    // remove leading zeros
+    while ( *dividend == '0' ) 
+        DivShiftArrayLeft ( dividend ); 
+
+    // likewise, for the divisor
     i = 0; 
-    for ( pc = dvsor_arg->term + 
-    DEC_LOC - dvsor__arg->places__before; 
-    pc <= dvsor___arg->term + 
-    DEC_LOC + dvsor__arg->places__after - 1; 
-    pc++, i++ ) 
-    divisor[i] = *pc + ASCII VAL; 
+    for ( pc = dvsor_arg->term + DEC_LOC - dvsor_arg->places_before; 
+            pc <= dvsor_arg->term + DEC_LOC + dvsor_arg->places_after - 1; 
+            pc++, i++ ) 
+        divisor[i] = *pc + ASCII_VAL; 
+
     while ( *divisor == '0' ) 
-    DivShiftSmallArrayLeft ( divisor ); 
+        DivShiftSmallArrayLeft ( divisor ); 
+
+
+    // If divisor is zero, signal error and abort
+    if ( DivCheckZeroOnly ( divisor )) 
+    { 
+        printf ( "Error: Division by Zero\n" ); 
+        return ( 0 ); 
+    } 
+
+    // If dividend is zero, set quotient to zero and exit
+    if ( DivCheckZeroOnly ( dividend )) 
+    { 
+        TermInit ( quot ); 
+        return ( 1 ); 
+    } 
+    divend_len = strlen ( dividend ); 
+    divsor_len = strlen ( divisor ); 
+
+    //
+    // If dividend is < divisor, 
+    // add zeros to end of dividend 
+    // an add leading zeros to quotient 
+    // 
+    while ( divend_len < divsor_len ) 
+    { 
+        * ( dividend + divend_len ) = '0' ; 
+        leading_zeros += 1; 
+        divend_len += 1; 
+    } 
+
+    if ( divend_len == divsor_len ) 
+    { 
+        strcmp_return = strcmp ( dividend, divisor ); 
+        if ( strcmp_return < 0 ) // dividend is lesser
+        { 
+            * ( dividend + divend_len ) = '0' ; 
+            leading_zeros += 1; 
+            divend_len += 1; 
+        } 
+        else 
+        if ( strcmp_return == 0 ) // they're the same
+        { 
+            answer [ answer_idx++ ] = '1' ; 
+            goto wrapup; 
+        }; // otherwise, divisor is lesser
+    } 
+
+
+    // load the dividend into interim
+    strcpy ( interim, dividend ); 
+    idivend_len = strlen ( interim ); 
+    
+loop: // main loop
+
+    if ( divsor_len > 3 ) 
+        dvsor_len = idvend_len = 4; 
+    else 
+    if ( divsor_len < idivend_len ) 
+    { 
+        if ( strcmp ( divisor, interim ) > 0 ) 
+        { 
+            dvsor_len = divsor_len; 
+            idvend_len = divsor_len + 1; 
+        } 
+        else 
+            dvsor_len = idvend_len = divsor_len; 
+    } 
+    else // can only be the terms are equal length
+    { 
+        dvsor_len = divsor_len; 
+        idvend_len = idivend_len; 
+    } 
+
+    if ( dvsor_len == idvend_len && dvsor_len > 1 ) 
+        if ( DivAtoin ( divisor, dvsor_len ) > DivAtoin ( interim, dvsor_len ) ) 
+            dvsor_len -= 1; 
+    
+    quo_guess = DivAtoin ( interim, idvend_len ) / 
+    DivAtoin ( divisor, dvsor_len ); 
+
+    if ( quo_guess > 9 ) 
+        quo_guess /= 10; 
+    
+try_quo_guess: // try_quo_guess goto
+
+    DivQuickMult ( divisor, quo_guess, product ); 
+    strncmp_return = 
+    strncmp ( product, interim, strlen ( product )); 
+    if ( strncmp_return > 0 ) // if product > interim 
+    { 
+        if ( quo_guess == 1 ) 
+        { 
+            //
+            //a quo_guess of 1 can be a special case: 
+            //try 9 and bring down another digit 
+            // 
+            if ( DivSpecialCase ( divisor, interim )) 
+            { 
+                quo_guess = 9; 
+                // 
+                // did we already pad the dividend ? 
+                // if so, then add a zero to interim dividend, 
+                // if not, then bring down another digit. 
+                // 
+                if ( leading_zeros ) 
+                    interim [ idvend_len++ ] = '0' ; 
+                else 
+                if ( next_dvend_digit < divend_len ) 
+                    interim [ idvend_len++ ] = dividend [ next_dvend_digit++] ; 
+                // and try again
+                goto try_quo_guess; 
+            } 
+            else // not special case
+                DivShiftArrayRight ( product ); 
+        } 
+        else 
+        // quo_guess != 1, so check whether array needs shift
+        if ( strlen ( product ) < idivend_len ) 
+           DivShiftArrayRight ( product ); 
+        else 
+        { // guess was just too high so try again
+            quo_guess -= 1; 
+            goto try_quo_guess; 
+        } 
+    }
+ 
+    // load the correct digit
+    answer[answer_idx++] = quo_guess + ASCII_VAL; 
+    // 
+    // if no next digit to bring down has been ascertained, 
+    // the next operation sets which digit to start bringing 
+    // down. Only done the first time through here. 
+    // 
+    if ( ! next_dvend_digit ) 
+        next_dvend_digit = strlen ( product ) ; 
+    
+    // new_interim = interim - product
+    DivQuickSub ( interim, product, new_interim ); 
+    
+    if (( DivCheckZeroOnly ( new_interim ) 
+        && next_dvend_digit >= divend_len ) 
+        || answer_idx >= MAX_SIZE ) // are we done?
+    goto wrapup; 
+
+    while ( *new_interim == '0' ) 
+        DivShiftArrayLeft ( new_interim ) ; 
+
+    memset ( interim, '\0', 2*MAX_SIZE + 1 ); 
+    strcpy ( interim, new_interim ); 
+    idivend_len = strlen ( interim ); 
+
+get_next_digit: // loop for get next digit
+
+    if ( next_dvend_digit < divend_len ) 
+        interim[idivend_len++] = dividend[next_dvend_digit++]; 
+    else 
+    { // if beyond EO dividend, bring down 0
+        interim [ idivend_len++] = '0'; 
+    } 
+
+    if ( idivend_len < divsor_len ) // if interim < divisor
+    { 
+        answer[answer_idx++] = '0' ; 
+        if ( answer_idx >= MAX_SIZE ) 
+            goto wrapup; 
+        goto get_next_digit; 
+    } 
+    else 
+    if ( idivend_len == divsor_len ) // same length
+    { 
+        if ( strcmp ( divisor, interim ) > 0 ) 
+        { // but divisor is greater
+            answer [ answer_idx++ ] = '0' ; 
+            if ( answer_idx >= MAX_SIZE ) 
+            goto wrapup; 
+
+
+            goto get_next_digit; 
+        } 
+    } 
+    goto loop; 
+
+wrapup: 
+    // 
+    // Now take result from answer and place it in quot. We 
+    // compare the order of magnitudes of the dividend and the 
+    // divisor to determine where the decimal point goes. 
+    // The rule is: 
+    // Places = Order - Order + 1 
+    // (dvend) (divisor) 
+    // 
+    // where strcmp ( dividend, divisor ) > 0 
+    // otherwise, don't add 1. 
+    // 
+    // A positive number is the number of places left of 
+    // the decimal point. From this, we subtract any leading 
+    // zeros. 
+    //
+ 
+    // get the order for the dividend
+    if ( dvend_arg->places_before != 0 ) 
+        dvend_order = dvend_arg->places_before; 
+    else 
+    { 
+        i = 0; 
+        pc = dvend_arg->term + DEC_LOC; 
+        while ( pc < dvend_arg->term + 2*MAX_SIZE ) 
+        { 
+            if ( *pc != 0 ) 
+                break; 
+            else 
+            { 
+                i += 1; 
+                pc += 1; 
+            } 
+        } 
+        dvend_order = -i; 
+    } 
+    // get the order for the divisor
+
+    if ( dvsor_arg->places_before != 0 ) 
+        dvsor_order = dvsor_arg->places_before; 
+    else 
+    { 
+        i = 0; 
+        pc = dvsor_arg->term + DEC_LOC; 
+        while ( pc < dvsor_arg->term + 2*MAX_SIZE ) 
+        { 
+            if ( *pc != 0 ) 
+                break; 
+            else 
+            { 
+                i += 1; 
+                pc += 1; 
+            } 
+        } 
+        dvsor_order = -i; 
+    } 
+
+    i = dvend_order - dvsor_order; 
+
+    if ( strcmp ( dividend, divisor ) >= 0 ) 
+        i += 1; 
+
+    j = DEC_LOC - i; 
+
+    //
+    // quot has already been intialized to zeros, 
+    // so we can start moving in the digits. 
+    // 
+    for ( i = 0; i < answer_idx && j < 2*MAX_SIZE; i++, j++ ) 
+        (quot->term) [ j ] = answer [i] - ASCII_VAL; 
+    
+    // compute the number of places before and after
+    for ( i = 0; i < DEC_LOC; i++ ) 
+        if ( (quot->term)[i] != 0 ) 
+            break; 
+
+    quot->places_before = DEC_LOC - i; 
+
+    for ( i = 2*MAX_SIZE - 1; i >= DEC_LOC; i-- ) 
+        if ( (quot->term)[i] != 0 ) 
+            break; 
+
+    quot->places_after = i - DEC_LOC + 1; 
+
+    // free the terms we created on the heap
+    free ( dividend ); 
+    free ( divisor ); 
+    free ( interim ); 
+    free ( new_interim ); 
+    free ( product ); 
+    free ( answer ); 
+
+    return ( 1 ); 
+
+}
+
+
+// 
+// Shifts an array of chars left by one character, truncating 
+// the leftmost char. Called by division only when the leading 
+// character is a '0'. The small version works on MAX_SIZE 
+// arrays, the regular version on 2*MAX_SIZE. 
+// 
+void DivShiftArrayLeft ( char *array ) 
+{ 
+    char buffer [ 2*MAX_SIZE + 1 ]; 
+    memset ( buffer, '\0', 2*MAX_SIZE + 1); 
+    strcpy ( buffer, array ); 
+    strcpy ( array, buffer + 1 ); 
+} 
+
+void DivShiftSmallArrayLeft ( char *array ) 
+{ 
+    char buffer [ MAX_SIZE + 1 ]; 
+    memset ( buffer, '\0', MAX_SIZE + 1); 
+    strcpy ( buffer, array ); 
+    strcpy ( array, buffer + 1 ); 
+} 
+
+//
+// This function checks a division term for a zero value. 
+// Called only by division operation. 
+// 
+int DivCheckZeroOnly ( const char *array ) 
+{ 
+    while ( *array ) 
+    { 
+        if ( *array != '0' ) 
+            return ( 0 ); 
+
+        array += 1; 
+    } 
+    return ( 1 ); 
+} 
+
+
+// 
+// Performs atoi for length number of characters. Called by 
+// division to establish the stubs of the divisor and dividend 
+// we will use to try guessing the next quotient digit. 
+// 
+int DivAtoin ( const char *string, int length ) 
+{ // usual tests for sign and white space omitted
+    int i, n; 
+    n = 0; 
+
+    for ( i = 0; i < length && ( string[i] >= '0' && string[i] <= '9'); i++ ) 
+        n = 10 * n + string[i] - '0'; 
+    
+    return ( n ); 
+} 
+
+// 
+// This function multiplies an array of digits as characters 
+// by a single-digit integer. Called by division only. 
+// 
+void DivQuickMult ( const char *long_term, int digit, char *result ) 
+{ 
+    int from, to; // array subscripts 
+    int new_carry, old_carry, hold; 
+
+    new_carry = old_carry = hold = to = 0; 
+    memset ( result, '\0', 2*MAX_SIZE + 1 ); 
+
+    for ( from = strlen ( long_term ) - 1; from >= 0; from--, to++ ) 
+    { 
+        hold = ( long_term[from] - ASCII_VAL ) * digit; 
+        new_carry = hold / 10; 
+        result[to] = hold % 10 + old_carry; 
+        if ( result[to] > 9 ) 
+        { 
+            new_carry += 1;
+            result[to] -= 10; 
+        } 
+        result[to] += ASCII_VAL; 
+        old_carry = new_carry; 
+    } 
+    if ( old_carry ) // if any left over
+    result [to] = old_carry + ASCII_VAL; 
+    strrev ( result ); 
+} 
+
+// 
+// Shifts an array of characters right one character and 
+// prepends a zero. Called only by division. 
+// 
+void DivShiftArrayRight ( char *array ) 
+{ 
+    memmove ( array + 1, array, strlen ( array )); 
+    array[0] = '0' ; 
+} 
+
+// 
+// If the division guesses a quotient digit that is too high, 
+// we normally would decrement the guess by 1 and try again. 
+// However, if the guessed digit is a 1, we have to be careful, 
+// because the decrement should give us a 9, not a 0. This 
+// function tests whether the correct digit is in fact a 9, or 
+// whether we have misapprehended the dividend on our guess. 
+// Called only by division. 
+// 
+int DivSpecialCase ( const char *divisor, const char *curr_dividend ) 
+{ 
+    char test_result [2*MAX_SIZE + 1]; 
+
+    DivQuickMult ( divisor, 9, test_result ); 
+    if ( strcmp ( curr_dividend, test_result ) > 0 ) 
+        return ( 1 ); 
+    else 
+        return ( 0 ); 
+}
+
+// 
+// Subtracts one array of chars (the subtrahend) from another 
+// array (the minuend), generating a difference. Called only 
+// by division. 
+// 
+void DivQuickSub ( char *minuend, char *subtrahend, char *diff ) 
+{ 
+    int sub, to; /* indices to various arrays */ 
+
+    sub = to = strlen ( subtrahend ) - 1; /* start at right */ 
+    diff[to + 1] = '\0'; /* after setting end of string */ 
+    while ( sub >= 0 ) 
+    { 
+        if ( minuend[sub] < subtrahend[sub] ) 
+        { 
+            minuend[sub] += 10; 
+            subtrahend[sub - 1] += 1; 
+        } 
+        //diff[to--] = minuend[sub] - subtrahend[sub] + CV; 
+        diff[to--] = minuend[sub] - subtrahend[sub];
+        sub -= 1; 
+    } 
+} 
 
