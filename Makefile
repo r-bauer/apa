@@ -17,6 +17,7 @@ DEPS=$(addprefix $(IDIR)/, $(_DEPS))
 _OBJALL=calcmain.o \
 		sqrtmain.o \
 		term.o \
+		amrtmain.o \
 		calculation.o
 
 _OBJ=	calcmain.o \
@@ -27,9 +28,14 @@ _OBJ2=	sqrtmain.o \
 		term.o \
 		calculation.o
 
+_OBJ3=  term.o \
+		amrtmain.o \
+		calculation.o
+
 
 OBJ=$(addprefix $(ODIR)/, $(_OBJ))
 OBJ2=$(addprefix $(ODIR)/, $(_OBJ2))
+OBJ3=$(addprefix $(ODIR)/, $(_OBJ3))
 OBJALL=$(addprefix $(ODIR)/, $(_OBJALL))
 
 
@@ -42,11 +48,15 @@ calculator: $(OBJ)
 squareroot: $(OBJ2)
 	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 
+amortization: $(OBJ3)
+	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 
 
 all: $(OBJALL)
 
 $(OBJ): | $(ODIR)
+$(OBJ2): | $(ODIR)
+$(OBJ3): | $(ODIR)
 
 $(ODIR):
 	mkdir -p $(ODIR)
@@ -54,5 +64,5 @@ $(ODIR):
 .PHONY:	clean
 
 clean: 
-	rm -fr $(ODIR) calculator* squareroot* *~ $(IDIR)/*~ $(SDIR)/*~ log.txt
+	rm -fr $(ODIR) calculator* squareroot* amortization* *~ $(IDIR)/*~ $(SDIR)/*~ log.txt
 
